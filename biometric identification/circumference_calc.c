@@ -30,9 +30,9 @@ int main(int argc, char** argv)
 	double length = 0;
 	double circumference = 0;	
 	l_prev.x = 0;
-        l_prev.y = 0;
-        r_prev.x = 0;
-        r_prev.y = 0;
+    l_prev.y = 0;
+    r_prev.x = 0;
+    r_prev.y = 0;
 	std::string line;
 	char *tok1, *tok2;
 	std::ifstream infile(argv[1]);

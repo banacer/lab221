@@ -13,24 +13,59 @@ struct reading{
 	double ut;
 	double ul;
 };
+struct list {
+	struct reading val;
+	struct list* next;
+};
 
 int main(int argc, char** argv)
 {
+	std::string line;
+	char *tok1, *tok2;
 	std::ifstream infile(argv[1]);
-	har c_line[100];
+	char c_line[100];
+	double cm;
+	int count = 0;
+	struct list * l = (struct list* ) malloc(sizeof(struct list));
+	struct list *node = NULL;
+	struct list *walker = NULL;
+	struct reading * dat;
 	while (std::getline(infile, line))
 	{
+		if(dat == NULL)
+			dat = (struct reading* ) malloc(sizeof(struct reading));
+
 		strcpy(c_line,line.c_str());
-		if(c_line[0] != 'U')
+		if(c_line[0] != 'U') // remove unwanted lines
 			continue;
+
 		tok1 = strtok(c_line," ");
 		strtok(NULL," "); // used to discard the '=' token
 		tok2 = strtok(NULL," ");
-		//cout << atof(tok2) <<endl;
+		
 		cm = atof(tok2);
-		if(strcmp(tok1,"UR") == 0)
+		if(count == 0 && strcmp(tok1,"UR") == 0)
+			dat->ur = cm;
+		else if(count == 1 && strcmp(tok1,"UT") == 0)
+			dat->ut = cm;
+		else if(count == 2 && strcmp(tok1,"UL") == 0)
 		{
+			dat->ul = cm;
+			node = (struct list* ) malloc(sizeof(struct list));
+			node->val = dat;
+			node->next = NULL;
+			walker = l;
+			while(walker->next != NULL)
+				walker = walker->next;
+			walker->next = node;
+			node = NULL;
+			dat = NULL;
 
 		}
+		else
+			continue;
+		count++;
+		count = count % 3;
 	}
+	cout << "DONE" << endl;
 }
