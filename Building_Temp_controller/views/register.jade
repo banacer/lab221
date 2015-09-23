@@ -9,7 +9,7 @@ html
       div.container
 
          div.page-header
-            h1 My Profile
+            h1 Please Enter your information
 
          if errors
             each error in errors
@@ -22,12 +22,21 @@ html
             input(name='_csrf', type='hidden', value=csrfToken)
 
             div.form-group
+               label.col-sm-4 Door tag Id
+               div.col-sm-8
+                  input.form-control(
+                  placeholder='e.g. 15',
+                  required=true,
+                  name='tag_id',
+                  type='number',
+                  value=tag_id)
+               div.form-group
                label.col-sm-4 First Name
                div.col-sm-8
                   input.form-control(
                   placeholder='e.g. Adam',
                   required=true,
-                  name='givenName',
+                  name='fname',
                   type='text',
                   value=fname)
             div.form-group
@@ -35,7 +44,7 @@ html
                div.col-sm-8
                   input.form-control(placeholder='e.g. Smith',
                   required=true,
-                  name='surname',
+                  name='lname',
                   type='text',
                   value=lname)
             div.form-group
@@ -44,14 +53,39 @@ html
                   input.form-control(placeholder='21',
                   required=true,
                   name='age',
+                  type='number',
+                  value=age)
+            div.form-group
+               label.col-sm-4 Email
+               div.col-sm-8
+                  input.form-control(placeholder='nkhalil@uh.edu',
+                  required=true,
+                  name='email',
                   type='text',
                   value=age)
             div.form-group
                label.col-sm-4 Gender
                div.col-sm-8
-                  select.form-control
+                  select.form-control(name='gender')
+                     option(value='') Please select your gender
                      option(value='male') Male
                      option(value='female') Female
+            div.form-group
+               label.col-sm-4 Password
+               div.col-sm-8
+                  input.form-control(placeholder='',
+                  required=true,
+                  name='pass',
+                  type='password',
+                  value=lname)
+            div.form-group
+               label.col-sm-4 Confirm Password
+               div.col-sm-8
+                  input.form-control(placeholder='',
+                  required=true,
+                  name='cpass',
+                  type='password',
+                  value=lname)
             div.form-group
                div.col-sm-offset-4.col-sm-8
                   button.login.btn.btn-primary(type='submit') Save
