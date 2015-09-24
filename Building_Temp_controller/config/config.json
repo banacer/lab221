@@ -1,0 +1,26 @@
+{
+  "test": {
+    "dialect": "sqlite",
+    "storage": "./db.development.sqlite"
+  },
+  "development": {
+    "username": "postgres",
+    "password": "Test.123",
+    "database": "noding",
+    "host": "localhost",
+    "port": 5433,
+    "dialect": "postgres",
+    "pool": {
+      "max": 5,
+      "min": 0,
+      "idle": 10000
+    }
+  },
+  "production": {
+    "username": "root",
+    "password": null,
+    "database": "database_production",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+}
