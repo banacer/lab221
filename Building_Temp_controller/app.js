@@ -4,8 +4,8 @@ var favicon = require('serve-favicon');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var passport = require('passport');
-var routes = require('./routes/index')(app, passport);
-var users = require('./routes/users')(app, passport);
+//var routes = require('./routes/index');
+var users = require('./routes/users');
 var passport = require('passport');
 var flash    = require('connect-flash');
 var morgan       = require('morgan');
@@ -24,14 +24,17 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(morgan('dev')); // log every request to the console
 
-app.use('/', routes);
-app.use('/users', users);
-
+require('./config/passport')(passport); // pass passport for configuration
 // required for passport
 app.use(session({ secret: 'ilovescotchscotchyscotchscotch' })); // session secret
 app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
 app.use(flash()); // use connect-flash for flash messages stored in session
+
+require('./routes/index.js')(app, passport); // load our routes and pass in our app and fully configured passport
+//app.use('/', routes);
+app.use('/users', users);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
