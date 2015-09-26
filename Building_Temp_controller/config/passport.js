@@ -22,7 +22,7 @@ module.exports = function(passport) {
 
     // used to deserialize the user
     passport.deserializeUser(function(id, done) {
-        User.findById(id, function(err, user) {
+        models.users.findById(id).then(function(err, user) {
             done(err, user);
         });
     });
@@ -43,9 +43,7 @@ module.exports = function(passport) {
 
             // asynchronous
             // User.findOne wont fire unless data is sent back
-            console.log("you are here1");
             models.users.find({where: {email: email}}).then( function (user, err) {
-                console.log("you are here2");
                 if (err) {
                     console.log('Error in SignUp: ' + err);
                     return done(err);
@@ -58,26 +56,18 @@ module.exports = function(passport) {
                 } else {
                     // if there is no user with that email
                     // create the user
-                    var newUser = new User();
-                    // set the user's local credentials
-                    newUser.email = email;
-                    newUser.password = newUser.methods.generateHash(pass);
-                    newUser.tag_id = req.body.tag_id;
-                    newUser.firstName = req.body.fname;
-                    newUser.lastName = req.body.lname;
-                    newUser.age = req.body.age;
-                    newUser.gender = req.body.gender;
-
-                    // save the user
-                    newUser.save(function (err) {
-                        if (err) {
-                            console.log('Error in Saving user: ' + err);
-                            throw err;
-                        }
-                        console.log('User Registration succesful');
-                        return done(null, newUser);
+                    models.users.create( {
+                        email: email,
+                        password: this.methods.generateHash(pass),
+                        tag_id: req.body.tag_id,
+                        firstName: req.body.fname,
+                        lastName: req.body.lname,
+                        age: req.body.age,
+                        gender: req.body.gender
+                    }).then(function(user) {
+                        console.log("you are here id : "+ user.id);
+                        return done(null, user);
                     });
-
                 }
             });
         }));
@@ -91,14 +81,15 @@ module.exports = function(passport) {
     passport.use('local-login', new LocalStrategy({
             // by default, local strategy uses username and password, we will override with email
             usernameField : 'email',
-            passwordField : 'password',
+            passwordField : 'pass',
             passReqToCallback : true // allows us to pass back the entire request to the callback
         },
-        function(req, email, password, done) { // callback with email and password from our form
+        function(req, email, pass, done) { // callback with email and password from our form
 
             // find a user whose email is the same as the forms email
             // we are checking to see if the user trying to login already exists
-            models.User.findOne({ 'email' :  email }, function(err, user) {
+            models.users.find({where: { email :  email}}).then( function(user,err
+            ) {
                 // if there are any errors, return the error before anything else
 
                 if (err)
@@ -109,7 +100,7 @@ module.exports = function(passport) {
                     return done(null, false, req.flash('loginMessage', 'No user found.')); // req.flash is the way to set flashdata using connect-flash
 
                 // if the user is found but the password is wrong
-                if (!user.methods.validPassword(password))
+                if (!user.methods.validPassword(pass))
                     return done(null, false, req.flash('loginMessage', 'Oops! Wrong password.')); // create the loginMessage and save it to session as flashdata
 
                 // all is well, return successful user

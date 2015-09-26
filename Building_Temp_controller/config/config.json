@@ -8,7 +8,7 @@
     "password": "Test.123",
     "database": "noding",
     "host": "localhost",
-    "port": 5433,
+    "port": 5432,
     "dialect": "postgres",
     "pool": {
       "max": 5,

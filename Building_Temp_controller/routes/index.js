@@ -16,7 +16,9 @@ module.exports = function(app, passport) {
         res.render('login');
     });
 
-    app.post('/login', function (req, res, next) {
-        console.log('you are here');
-    });
+    app.post('/login', passport.authenticate('local-login', {
+      successRedirect: '/hola', // redirect to the secure profile section
+      failureRedirect: '/failure', // redirect back to the signup page if there is an error
+      failureFlash: true // allow flash messages
+    }));
 };
