@@ -22,8 +22,7 @@ module.exports = function(passport) {
 
     // used to deserialize the user
     passport.deserializeUser(function(id, done) {
-        models.users.findById(id).then(function(err, user) {
-            console.log("you are here id : "+ user);
+        models.User.findById(id).then(function(user,err) {
             done(err, user);
         }).error(function(err){
             done(new Error('User ' + id + ' does not exist'));
@@ -46,25 +45,26 @@ module.exports = function(passport) {
 
             // asynchronous
             // User.findOne wont fire unless data is sent back
-            models.users.find({where: {email: email}}).then( function (err,user) {
+            models.User.find({where: {email: email}}).then( function (user,err) {
                 // already exists
                 if (user) {
-                    console.log('User already exists');
+                    console.error('User already exists');
                     return done(null, false,
                         req.flash('message', 'User Already Exists'));
                 } else {
                     // if there is no user with that email
                     // create the user
-                    models.users.create( {
+                    var user = models.User.build( {
                         email: email,
-                        password: this.methods.generateHash(pass),
                         tag_id: req.body.tag_id,
                         firstName: req.body.fname,
                         lastName: req.body.lname,
                         age: req.body.age,
                         gender: req.body.gender
-                    }).then(function(user) {
-                        console.log("you are here id : "+ user.id);
+                    });
+                    user.setPassword(pass);
+
+                    user.save().then(function(user) {
                         return done(null, user);
                     });
                 }
@@ -90,13 +90,14 @@ module.exports = function(passport) {
 
             // find a user whose email is the same as the forms email
             // we are checking to see if the user trying to login already exists
-            models.users.find({where: {email: email}}).then( function(err,user) {
+            console.log("email is " + email + " pass is " + pass);
+            models.User.find({where: {email: email}}).then( function(user, err) {
                 // if no user is found, return the message
                 if (!user)
                     return done(null, false, req.flash('loginMessage', 'No user found.')); // req.flash is the way to set flashdata using connect-flash
 
                 // if the user is found but the password is wrong
-                if (!user.methods.validPassword(pass))
+                if (!user.validPassword(pass))
                     return done(null, false, req.flash('loginMessage', 'Oops! Wrong password.')); // create the loginMessage and save it to session as flashdata
                 // all is well, return successful user
                 return done(null, user);
