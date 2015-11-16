@@ -10,4 +10,4 @@ data = np.array([[-7.360646,74.324404],[-10.182022,74.707892],[217.06201,73.7354
  [169.74233,74.420276],[169.002746,74.310708],[168.92057,74.584628]])
 
 circ = FeatureExtractor.getcircumference(data, 50.0)
-print circ
+print "circumference: ",circ

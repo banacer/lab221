@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.spatial import distance
-speed = 5
+speed = 3
 
 def getAvgHeight(data):    
     return np.mean(data[0<data[:,0],0])
@@ -15,7 +15,7 @@ def getMaxWidth(data):
     return np.max(data[0<data[:,1],1])
 
 def getcircumference(data,sampling_rate):    
-    beg = data[0,1]    
+    beg = data[0,1]
     side = 0
     size = data[:,1].size
     previous_point = np.array([0,0])
@@ -23,13 +23,16 @@ def getcircumference(data,sampling_rate):
     for i in range(1,size - 1):
         if data[i,1] < 0:
             continue
-        current_point = np.array([data[i,1],i*my_distance])        
+        current_point = np.array([data[i,1],i*my_distance])
+        #print "C: ", current_point," , P: ",previous_point
         euclidean_distance = distance.euclidean(current_point, previous_point)
+        previous_point = current_point
         if euclidean_distance > 5:
             continue
-        print "euclidean distance: ", euclidean_distance
-        previous_point = current_point
+
         side += euclidean_distance/2
+        print "euclidean distance: ", euclidean_distance, " side: " , side
+
     end = data[size - 1,1]
     circumference = beg + end + 2 * side
     return circumference
