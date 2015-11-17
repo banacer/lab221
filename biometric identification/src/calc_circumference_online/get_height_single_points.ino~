@@ -1,18 +1,16 @@
 #include <XBee.h>
 #include "Timer.h"
-#define maxlen 50
 Timer t;
 int pingPin[3] = {3, 5, 7};
 short inc = 0, Pin;
 short count = 0, idx = 0;
 XBee xbee = XBee();
 // allocate three bytes for to hold a 10-bit analog reading
-uint8_t payload[maxlen * 2];
-int i = 0;
+uint8_t payload[3];
 // with Series 1 you can use either 16-bit or 64-bit addressing
 
 // 16-bit addressing: Enter address of remote XBee, typically the coordinator
-Tx16Request tx = Tx16Request(0x2210, payload, sizeof(payload));
+Tx16Request tx = Tx16Request(0x2210, payload, 100);
 
 
 TxStatusResponse txStatus = TxStatusResponse();
@@ -49,7 +47,7 @@ void getDuration()
 	digitalWrite(Pin, LOW);
 
 	pinMode(Pin, INPUT);
-	duration = pulseIn(Pin, HIGH,10);
+	duration = pulseIn(Pin, HIGH);
 	//return duration;
 }
 
@@ -63,15 +61,11 @@ void setup()
 void loop()
 {  
 	Pin = pingPin[inc];
-	getDuration();	
-	payload[idx * 2] = duration >> 8 & 0xff;
-	payload[idx*2 + 1] = duration & 0xff;
-	idx++;
-	idx = idx % maxlen;
-	if(idx == maxlen - 1)
-	{		
-		xbee.send(tx);
-	}
+	getDuration();
+	payload[0] = inc + 3;
+        payload[1] = duration >> 8 & 0xff;
+        payload[2] = duration & 0xff;
+	xbee.send(tx);
 	
 	inc++;
 	inc = inc % 3;
