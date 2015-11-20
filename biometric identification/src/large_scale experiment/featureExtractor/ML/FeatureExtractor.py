@@ -2,7 +2,7 @@ import numpy as np
 from scipy.spatial import distance
 speed = 3
 
-def getAvgHeight(data):    
+def getAvgHeight(data):
     return np.mean(data[0<data[:,0],0])
 
 def getMaxHeight(data):
@@ -31,7 +31,7 @@ def getcircumference(data,sampling_rate):
             continue
 
         side += euclidean_distance/2
-        print "euclidean distance: ", euclidean_distance, " side: " , side
+        #print "euclidean distance: ", euclidean_distance, " side: " , side
 
     end = data[size - 1,1]
     circumference = beg + end + 2 * side
@@ -41,4 +41,3 @@ def timeToDistance(sampling_rate):
     distancePerMillisecond = float(speed) *100000 / (3600*1000)
     distance = 1000/sampling_rate * distancePerMillisecond 
     return distance
-  
