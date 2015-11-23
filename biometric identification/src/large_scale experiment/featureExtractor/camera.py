@@ -1,15 +1,17 @@
 import numpy as np
 import cv2
 import time
+import readline
 
-
-def capture():
+def capture(id):
     cap = cv2.VideoCapture(0)
+    #set the camera_done boolean value to false
+    readline.camera_done = False
 
     # Define the codec and create VideoWriter object
     # fourcc = cv2.VideoWriter_fourcc(*'DIVX')
     fourcc = cv2.cv.CV_FOURCC(*'XVID')
-    out = cv2.VideoWriter('output.avi', fourcc, 25.0, (640, 480))
+    out = cv2.VideoWriter('output'+str(id)+'.avi', fourcc, 25.0, (640, 480))
     start = time.time()
     current = time.time()
     while current - start < 10:
@@ -25,15 +27,16 @@ def capture():
                 break
         else:
             break
-
+    #Setting camera footage as done
+    readline.camera_done = True
     # Release everything if job is finished
     cap.release()
     out.release()
     cv2.destroyAllWindows()
 
 
-def extract_video_event(start, end, video):
-    cap = cv2.VideoCapture('output.avi')
+def extract_video_event(start, end, video,id):
+    cap = cv2.VideoCapture('videos/output'+str(id)+'.avi')
     nFrames = int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT ) )
     fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
     fourcc = cv2.cv.CV_FOURCC(*'XVID')
