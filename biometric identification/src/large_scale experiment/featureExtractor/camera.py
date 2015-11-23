@@ -60,4 +60,4 @@ def extract_video_event(start, end, video, id):
 
 
 #capture()
-extract_video_event(2, 5, 'video.avi')
+#extract_video_event(2, 5, 'video.avi')

@@ -34,6 +34,7 @@ def get_video_events(video_id,video_time):
         camera.extract_video_event(my_start, my_end, event_id, video_id)
     #delete video
     os.remove('output'+str(video_id)+'.avi')
+
 def read_sensor_data():
     ser = Serial('/dev/ttyACM0',9600)
     count= 0
@@ -54,7 +55,7 @@ def read_sensor_data():
     video_time = time.time()
     video_id = 1
     camera_thread = threading.Thread(target=camera.capture,args=(video_id))
-    camera_thread.daemon = True
+    #camera_thread.daemon = True
     camera_thread.start()
     video_id += 1
 
@@ -69,12 +70,12 @@ def read_sensor_data():
             if camera_done: # this means video shot finished
                 #Extracting video from 1-minute long video
                 subvideo_thread = threading.Thread(target=get_video_events(),args=(video_id - 1,video_time))
-                subvideo_thread.daemon = True
+                #subvideo_thread.daemon = True
                 subvideo_thread.start()
                 #Start new video
                 video_time = time.time()
                 camera_thread = threading.Thread(target=camera.capture,args=(video_id))
-                camera_thread.daemon = True
+                #camera_thread.daemon = True
                 camera_thread.start()
                 video_id += 1
 
@@ -125,6 +126,5 @@ def read_sensor_data():
             log_file.write('An error occured at ' + str(t))
             pass
 
-t = threading.Thread(target=read_sensor_data)
-t.daemon = True
-t.start()
+#start program
+read_sensor_data()
