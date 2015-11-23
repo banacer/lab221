@@ -31,7 +31,7 @@ def get_video_events(video_id,video_time):
         my_start = info[0] - video_time
         my_end = info[1] - video_time
         event_id = info[2]
-        camera.extract_video_event(my_start,my_end,id,event_id)
+        camera.extract_video_event(my_start, my_end, event_id, video_id)
     #delete video
     os.remove('output'+str(video_id)+'.avi')
 def read_sensor_data():

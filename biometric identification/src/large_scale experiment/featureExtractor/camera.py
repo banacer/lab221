@@ -35,12 +35,12 @@ def capture(id):
     cv2.destroyAllWindows()
 
 
-def extract_video_event(start, end, video,id):
+def extract_video_event(start, end, video, id):
     cap = cv2.VideoCapture('videos/output'+str(id)+'.avi')
     nFrames = int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT ) )
     fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
     fourcc = cv2.cv.CV_FOURCC(*'XVID')
-    out = cv2.VideoWriter(video, fourcc, 25.0, (640, 480))
+    out = cv2.VideoWriter(str(video)+'.avi', fourcc, 25.0, (640, 480))
     f_start = start * 25
     f_end = end * 25
     print nFrames
