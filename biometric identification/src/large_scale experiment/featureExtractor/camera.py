@@ -1,48 +1,57 @@
-import numpy as np
+#import numpy as np
 import cv2
 import time
-import readline
+import os.path
 
-def capture(id):
+def do_capture(id):
     cap = cv2.VideoCapture(0)
-    #set the camera_done boolean value to false
-    readline.camera_done = False
-
+    #cap.set(cv2.cv.CV_CAP_PROP_FPS, 20)
     # Define the codec and create VideoWriter object
     # fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-    fourcc = cv2.cv.CV_FOURCC(*'XVID')
-    out = cv2.VideoWriter('output'+str(id)+'.avi', fourcc, 25.0, (640, 480))
+    fourcc = cv2.cv.CV_FOURCC('H','2','6','4')
+    out = cv2.VideoWriter('output'+str(id)+'.h264', fourcc, 10.0, (320, 240))
     start = time.time()
     current = time.time()
+    count = 1
     while current - start < 10:
+        print count
+        count += 1
         print (current - start)
         ret, frame = cap.read()
         current = time.time()
         if ret == True:
+            pass
             # write the flipped frame
             out.write(frame)
 
-            # cv2.imshow('frame',frame)
+            #cv2.imshow('frame',frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         else:
             break
-    #Setting camera footage as done
-    readline.camera_done = True
     # Release everything if job is finished
     cap.release()
     out.release()
     cv2.destroyAllWindows()
+    return start
+
 
 
 def extract_video_event(start, end, video, id):
-    cap = cv2.VideoCapture('videos/output'+str(id)+'.avi')
+    print 'nice!' , str(start), ' , ' , str(end) , ' , ' , str(id)
+    inputfile = 'output'+str(id)+'.avi'
+    print inputfile
+    if not os.path.isfile(inputfile):
+        print 'file not found'
+        return
+    cap = cv2.VideoCapture(inputfile)
+
     nFrames = int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT ) )
-    fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
-    fourcc = cv2.cv.CV_FOURCC(*'XVID')
-    out = cv2.VideoWriter(str(video)+'.avi', fourcc, 25.0, (640, 480))
-    f_start = start * 25
-    f_end = end * 25
+    fps = nFrames / 10
+    fourcc = cv2.cv.CV_FOURCC('H','2','6','4')
+    out = cv2.VideoWriter('videos/'+ str(video) + '.avi', fourcc, 4.0, (640, 480))
+    f_start = start * fps
+    f_end = end * fps
     print nFrames
     print fps
     print f_start
@@ -59,5 +68,5 @@ def extract_video_event(start, end, video, id):
     cv2.destroyAllWindows()
 
 
-#capture()
+#do_capture(12)
 #extract_video_event(2, 5, 'video.avi')
