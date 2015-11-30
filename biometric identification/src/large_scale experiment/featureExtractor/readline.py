@@ -5,8 +5,9 @@ import numpy as np
 import ML.FeatureExtractor as features
 import threading
 import Queue
-import camera
+import camera as mycamera
 import os
+import copy
 
 queue = Queue.Queue()
 camera_done = False
@@ -22,18 +23,42 @@ def write_event_data(event_file, event_data, len, current_time):
     event_file.write(str(current_time) + '_\n')
     event_file.flush()
 
-def get_video_events(video_id,video_time):
+def get_video_events(video_id):
+    print 'video_id: ' , video_id
     while not queue.empty():
         info = queue.get()
+        print 'queue item: ', info
         if info[3] != video_id:
             queue.put(info)
             break
-        my_start = info[0] - video_time
-        my_end = info[1] - video_time
+        video_time = info[4]
+        my_start = info[0] - video_time - 1
+        if my_start < 0:
+            my_start = 0
+        my_end = info[1] - video_time + 1
+        if my_end > 10:
+            my_end = 10
         event_id = info[2]
-        camera.extract_video_event(my_start, my_end, event_id, video_id)
+        mycamera.extract_video_event(my_start, my_end, event_id, video_id)
     #delete video
+    print 'deleting ' + 'output' + str(video_id) + '.avi'
     os.remove('output'+str(video_id)+'.avi')
+
+#A wrapper around the do_capture function in Camera module
+def do_capture(id):
+    global camera_done
+    camera_done = False
+    mycamera.do_capture(id)
+    camera_done = True
+
+def get_video_event():
+    #Camera footage stuff
+    video_time = time.time()
+    video_id = 1
+    camera_thread = threading.Thread(target=do_capture,args=(video_id,))
+    #camera_thread.daemon = True
+    camera_thread.start()
+    video_id += 1
 
 def read_sensor_data():
     ser = Serial('/dev/ttyACM0',9600)
@@ -54,30 +79,30 @@ def read_sensor_data():
     #Camera footage stuff
     video_time = time.time()
     video_id = 1
-    camera_thread = threading.Thread(target=camera.capture,args=(video_id))
+    camera_thread = threading.Thread(target=do_capture,args=(int(video_id),))
     #camera_thread.daemon = True
     camera_thread.start()
-    video_id += 1
-
     #start reading sensory data
     while True:
-        try:
+        #try:
             line = ser.readline()
             current_time = time.time()
             count +=1
             data = line.split(',')
             #camera footage stuff
             if camera_done: # this means video shot finished
+
                 #Extracting video from 1-minute long video
-                subvideo_thread = threading.Thread(target=get_video_events(),args=(video_id - 1,video_time))
+                subvideo_thread = threading.Thread(target=get_video_events,args=(int(video_id),))
                 #subvideo_thread.daemon = True
                 subvideo_thread.start()
                 #Start new video
+                video_id += 1
                 video_time = time.time()
-                camera_thread = threading.Thread(target=camera.capture,args=(video_id))
+                camera_thread = threading.Thread(target=do_capture,args=(int(video_id),))
                 #camera_thread.daemon = True
                 camera_thread.start()
-                video_id += 1
+
 
             all_data_file.write(str(current_time)+','+line+'\n')
             all_data_file.flush()
@@ -85,14 +110,15 @@ def read_sensor_data():
                 for i in range(0,3):
                     val =re.sub('[^0-9]','', data[i])
                     #data[i] = int(val)#((float(val) / 10**4 ) * (331.3 + 0.606 * temperature)) / 2
-                    data[i] = calibration_a * float(val) + calibration_b;
+                    data[i] = calibration_a * float(val) + calibration_b
 
                 measures = get_height_and_width(data)
 
                 if (110 < measures[0] and measures[0] < 200) or measures[1] > 20:  #start of passing event
                     #print "measures: ",measures
                     if eventCount == 0:
-                        event_time.append(time.time())
+                        event_time = []
+                        event_time.append(copy.copy(time.time()))
                     event.append(measures)
                     eventCount += 1
                 elif eventCount > 5: # extract features
@@ -110,21 +136,23 @@ def read_sensor_data():
                     write_event_data(raw_event_file,eventdata,eventCount,current_time)
 
                     #save event id to structrure and increment event_id
-                    event_time.append(event_id)
-                    event_time.append(video_id)
+                    event_time.append(copy.copy(event_id))
+                    event_time.append(copy.copy(video_id))
+                    event_time.append(copy.copy(video_time))
                     event_id += 1
                     #push event time to queue
+                    print 'pushing ', event_time
                     queue.put(event_time)
-
+                    print 'queue size: ', queue._qsize()
                     #initialize vars for next event
                     eventCount = 0
                     event = []
                     event_time = []
-        except Exception:
-            t = time.time()
-            print 'error'
-            log_file.write('An error occured at ' + str(t))
-            pass
+        #except Exception:
+        #    t = time.time()
+        #    print 'error'
+        #    log_file.write('An error occured at ' + str(t))
+        #    pass
 
 #start program
 read_sensor_data()
