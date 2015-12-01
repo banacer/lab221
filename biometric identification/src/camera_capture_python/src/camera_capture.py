@@ -1,9 +1,9 @@
 import cv2
-from datetime import datetime
+dif
 
 cap = cv2.VideoCapture(0)
 # Define the codec and create VideoWriter object
-fourcc = cv2.cv.CV_FOURCC(*'XVID')
+fourcc = cv2.cv.CV_FOURCC('m', 'p', '4', 'v')
 d =  datetime.now()
 file_name = d.strftime("%m-%d-%y_%H")
 file_name = file_name+'.avi'
