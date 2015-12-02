@@ -9,8 +9,9 @@ import camera as mycamera
 import os
 import copy
 
-queue = Queue.Queue()
-camera_done = False
+#queue = Queue.Queue()
+#camera_done = False
+
 def get_height_and_width(data):
     measures = []
     measures.append(213.5 - float(data[0]))
@@ -22,7 +23,7 @@ def write_event_data(event_file, event_data, len, current_time):
         event_file.write(str(event_data[i,0])+','+str(event_data[i,1])+'\n')
     event_file.write(str(current_time) + '_\n')
     event_file.flush()
-
+"""
 def get_video_events(video_id):
     print 'video_id: ' , video_id
     while not queue.empty():
@@ -59,7 +60,7 @@ def get_video_event():
     #camera_thread.daemon = True
     camera_thread.start()
     video_id += 1
-
+"""
 def read_sensor_data():
     ser = Serial('/dev/ttyACM0',9600)
     count= 0
@@ -77,18 +78,19 @@ def read_sensor_data():
 
 
     #Camera footage stuff
-    video_time = time.time()
-    video_id = 1
-    camera_thread = threading.Thread(target=do_capture,args=(int(video_id),))
+    #video_time = time.time()
+    #video_id = 1
+    #camera_thread = threading.Thread(target=do_capture,args=(int(video_id),))
     #camera_thread.daemon = True
-    camera_thread.start()
+    #camera_thread.start()
     #start reading sensory data
     while True:
-        #try:
+        try:
             line = ser.readline()
             current_time = time.time()
             count +=1
             data = line.split(',')
+            """
             #camera footage stuff
             if camera_done: # this means video shot finished
 
@@ -102,7 +104,7 @@ def read_sensor_data():
                 camera_thread = threading.Thread(target=do_capture,args=(int(video_id),))
                 #camera_thread.daemon = True
                 camera_thread.start()
-
+            """
 
             all_data_file.write(str(current_time)+','+line+'\n')
             all_data_file.flush()
@@ -137,22 +139,22 @@ def read_sensor_data():
 
                     #save event id to structrure and increment event_id
                     event_time.append(copy.copy(event_id))
-                    event_time.append(copy.copy(video_id))
-                    event_time.append(copy.copy(video_time))
+                    #event_time.append(copy.copy(video_id))
+                    #event_time.append(copy.copy(video_time))
                     event_id += 1
                     #push event time to queue
-                    print 'pushing ', event_time
-                    queue.put(event_time)
-                    print 'queue size: ', queue._qsize()
+                    #print 'pushing ', event_time
+                    #queue.put(event_time)
+                    #print 'queue size: ', queue._qsize()
                     #initialize vars for next event
                     eventCount = 0
                     event = []
                     event_time = []
-        #except Exception:
-        #    t = time.time()
-        #    print 'error'
-        #    log_file.write('An error occured at ' + str(t))
-        #    pass
+        except Exception:
+            t = time.time()
+            print 'error'
+            log_file.write('An error occured at ' + str(t))
+            pass
 
 #start program
 read_sensor_data()
