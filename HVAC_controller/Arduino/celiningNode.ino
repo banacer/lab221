@@ -14,11 +14,11 @@ Rx16Response rx = Rx16Response();
 
 int cntrlDamper(int data)
 {
-int dampCntrlVal = 0;
-dampCntrlVal = (255/100)* data;
-analogWrite(dampCntrlPin, dampCntrlVal);
-Serial.println(dampCntrlVal);
-return dampCntrlVal;
+	int dampCntrlVal = 0;
+	dampCntrlVal = (255/100)* data;
+	analogWrite(dampCntrlPin, dampCntrlVal);
+	Serial.println(dampCntrlVal);
+	return dampCntrlVal;
 }
 
 

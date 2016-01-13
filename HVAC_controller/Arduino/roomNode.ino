@@ -47,7 +47,7 @@ void setup()
 
 void loop()
 {
-	delay(1500);
+	delay(1500);        
 	xbee.readPacket();
 	if(xbee.getResponse().isAvailable())
 	{
@@ -66,7 +66,7 @@ void loop()
 			}
 		    Serial.println();
 		    Serial.print("RemoteID = ");
-		    Serial.println(remoteID);
+		    Serial.println(remoteID,HEX);
 
 		    switch (data[0]) {
 
@@ -77,7 +77,7 @@ void loop()
                           tx.setAddress16(remoteID);
                           xbee.send(tx);
                           Serial.print("Temp = ");
-		          Serial.println(temp, HEX);  
+		          Serial.println(temp);  
 		          break;
 
 		        case 104:

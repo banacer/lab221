@@ -2,6 +2,13 @@ import sys
 import send_Xbee
 from time import sleep
 
+# stuff to run always here such as class/def
+def main():
+    pass
+
+if __name__ == "__main__":
+   # stuff only to run when not called via 'import' here
+   main()
 
 print('getData(choice in string, address in HEX)')
 print '\n choice?\n temp\n humid\n co2\nexit'

@@ -10,10 +10,8 @@ def sendDamperCmd(serial_, nodeId, val):
 def getTemp(serial_, nodeId):
     xbee = XBee.XBee(serial_)
     xbee.Send(msg = 't', addr = nodeId, options = 0x01, frameid = 0x00)
-    sleep(1)
-    Msg = xbee.Receive()
-    #content = Msg[7:-1]
-    print("Msg: " + xbee.format(Msg))
+    response = xbee.Receive()
+    print response
     
 def getHum(serial_, nodeId):
     xbee = XBee.XBee(serial_)
