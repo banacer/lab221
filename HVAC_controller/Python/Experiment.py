@@ -35,10 +35,82 @@ class Experiment:
     def subscribe_to_queue(self, q_name, func):
         self.channel.basic_consume(func, queue=q_name, no_ack=True)
 
+    def __strategy1(self, temp_preference):
+        """
+        executes strategy 1
+        :param temp_preference: the temperature preference
+        """
+        #set the room temperature to 4 degrees higher
+        initial_change = 4
+        self.adjust_room(initial_change)
+        self.subscribe_to_queue(self.topic_in, self.__handle_change)
+
+
+    def __strategy2(self,temp_preference):
+        """
+        executes strategy 2
+        :param temp_preference: the temperature preference
+        """
+        print 'strategy 2 running!'
+        # set the room temperature to 4 degrees lower
+        initial_change = -4
+        self.adjust_room(initial_change)
+        self.subscribe_to_queue(self.topic_in, self.__handle_change)
+
+    def __strategy3(self,temp_preference):
+        """
+        executes strategy 3
+        :param temp_preference: the temperature preference
+        """
+        # set the room temperature to 4 degrees higher
+        initial_change = 4
+        self.adjust_room(initial_change)
+        self.sender.sendDamperCmd(100) #open the damper 100%
+
+    def __strategy4(self,temp_preference):
+        """
+        executes strategy 4
+        :param temp_preference: the temperature preference
+        """
+        pass
+
+    def __monitor_loading(self,start, target):
+        while start != target:
+            current = self.sender.getTemp()
+            loading  = float(current - start) / float(target - start) * 100
+            self.push_to_queue(str(loading))
+            sleep(10)
+
+    def __handle_change(self,ch, method, properties, body):
+        change = float(body)
+        self.adjust_room(change)
+
+    def wait_for_stop(self, ch, method, properties, body):
+        if body.lower() == 'stop':
+            self.__stop()
+        else:
+            self.push_to_queue('wrong message! Expected to receive stop')
+
+    def adjust_room(self,change):
+        if change == 0:  # experiment done
+            self.__stop()
+        current_temp = self.sender.getTemp()
+        target_temp = current_temp + change
+        p = Process(target=self.sender.set_temp, args=(target_temp,))  # create thread to execute process
+        self.__monitor_loading(current_temp, target_temp)
+        # Process(target=MQTT.__monitor_loading,args=(current_temp,target_temp,userdata,))
+
+
+    def __stop(self):
+        temp = self.sender.getTemp()
+        self.push_to_queue(self.topic_out,temp) # send final temperature value at end of experiment
+        self.channel.close()
+        self.connection.close()
+
 
     @staticmethod
     def execute_strategy(ch, method, properties, body):
-        print 'yes we received',body
+        print 'yes we received', body
         obj = json.loads(body)
         strategy_num = obj['num']
         temp_preference = obj['temp']
@@ -58,54 +130,6 @@ class Experiment:
         else:
             print 'Strategy not recognized'
 
-
-    def __strategy1(self, temp_preference):
-        print 'strategy 1 running!'
-        #set the room temperature to 4 degrees higher
-        initial_change = 4
-        self.adjust_room(initial_change,self)
-        self.subscribe_to_queue(self.topic_in, self.__handle_change)
-
-
-    @staticmethod
-    def __strategy2(temp_preference):
-        pass
-
-    @staticmethod
-    def __strategy3(temp_preference):
-        pass
-
-    @staticmethod
-    def __strategy4(temp_preference):
-        pass
-
-    def __monitor_loading(self,start, target, mqtt):
-        print 'monitor loading!!'
-        while start != target:
-            current = self.sender.getTemp()
-            loading  = float(current - start) / float(target - start) * 100
-            self.push_to_queue(str(loading))
-            sleep(10)
-
-    def __handle_change(self,ch, method, properties, body):
-        change = float(body)
-        self.adjust_room(change)
-
-    def adjust_room(self,change,mqtt):
-        if change == 0:  # experiment done
-            self.__stop(mqtt)
-        current_temp = mqtt.sender.getTemp()
-        target_temp = current_temp + change
-        p = Process(target=mqtt.sender.set_temp, args=(target_temp,))  # create thread to execute process
-        print 'you are here!'
-        self.__monitor_loading(current_temp, target_temp, mqtt)
-        # Process(target=MQTT.__monitor_loading,args=(current_temp,target_temp,userdata,))
-
-
-    def __stop(self):
-
-        temp = self.sender.getTemp()
-        self.push_to_queue(self.topic_out,temp) # send final temperature value at end of experiment
 
 connection = pika.BlockingConnection(pika.ConnectionParameters(host=Experiment.rabbitmq_host))
 channel = connection.channel()
