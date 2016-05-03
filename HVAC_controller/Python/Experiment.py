@@ -66,13 +66,18 @@ class Experiment:
         initial_change = 4
         self.adjust_room(initial_change)
         self.sender.sendDamperCmd(100) #open the damper 100%
+        self.subscribe_to_queue(self.topic_in,self.wait_for_stop)
 
     def __strategy4(self,temp_preference):
         """
         executes strategy 4
         :param temp_preference: the temperature preference
         """
-        pass
+        # set the room temperature to 4 degrees higher
+        initial_change = -4
+        self.adjust_room(initial_change)
+        #expect the user to turn on heater
+        self.subscribe_to_queue(self.topic_in, self.wait_for_stop)
 
     def __monitor_loading(self,start, target):
         while start != target:
