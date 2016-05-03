@@ -105,13 +105,11 @@ class Experiment:
         self.__monitor_loading(current_temp, target_temp)
         # Process(target=MQTT.__monitor_loading,args=(current_temp,target_temp,userdata,))
 
-
     def __stop(self):
         temp = self.sender.getTemp()
         self.push_to_queue(self.topic_out,temp) # send final temperature value at end of experiment
         self.channel.close()
         self.connection.close()
-
 
     @staticmethod
     def execute_strategy(ch, method, properties, body):
