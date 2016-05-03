@@ -1,0 +1,7 @@
+nose
+numpy
+scipy
+pandas
+pyserial
+scikit-learn
+matplotlib
