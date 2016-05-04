@@ -1,5 +1,6 @@
 
 from sender import Sender
+import SerialSender
 from multiprocessing import Process
 from time import sleep
 import json
@@ -10,18 +11,15 @@ class Experiment:
     rabbitmq_host = '172.26.50.120'
     __rabbitmq_host = '172.26.50.120'
     __rabbitmq_port = 1883
-    __arduino_serial = '/dev/ttyUSB0'
+    __arduino_serial = '/dev/ttyACM1'
     __arduino_addr = 0x2211
 
-    def __init__(self,topic):
+    def __init__(self):
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.__rabbitmq_host))
         self.channel = self.connection.channel()
-        self.topic_in = topic + '/in'
-        self.topic_out = topic + '/out'
-        self.channel.queue_declare(queue=self.topic_in)
-        self.channel.queue_declare(queue=self.topic_out)
         self.channel.basic_qos(prefetch_count=1)
-        self.sender = Sender(self.__arduino_serial, self.__arduino_addr)
+        self.sender = SerialSender.SerialSender(self.__arduino_serial)
+        #self.sender = Sender(self.__arduino_serial, self.__arduino_addr)
 
     def push_to_queue(self, obj):
         print 'pushing to queue ',self.topic_out, ' val ', obj
@@ -35,11 +33,19 @@ class Experiment:
     def subscribe_to_queue(self, q_name, func):
         self.channel.basic_consume(func, queue=q_name, no_ack=True)
 
+    def __init_queues(self,num):
+        self.topic_in = 'strategy%d/in' % num
+        self.topic_out = 'strategy%d/out' % num
+        self.channel.queue_declare(queue=self.topic_in)
+        self.channel.queue_declare(queue=self.topic_out)
+
     def __strategy1(self, temp_preference):
         """
         executes strategy 1
         :param temp_preference: the temperature preference
         """
+        # initializing queues
+        self.__init_queues(1)
         #set the room temperature to 4 degrees higher
         initial_change = 4
         self.adjust_room(initial_change)
@@ -52,6 +58,9 @@ class Experiment:
         :param temp_preference: the temperature preference
         """
         print 'strategy 2 running!'
+
+        #initializing queues
+        self.__init_queues(2)
         # set the room temperature to 4 degrees lower
         initial_change = -4
         self.adjust_room(initial_change)
@@ -62,6 +71,9 @@ class Experiment:
         executes strategy 3
         :param temp_preference: the temperature preference
         """
+
+        #initializing queues
+        self.__init_queues(3)
         # set the room temperature to 4 degrees higher
         initial_change = 4
         self.adjust_room(initial_change)
@@ -73,6 +85,9 @@ class Experiment:
         executes strategy 4
         :param temp_preference: the temperature preference
         """
+
+        #initializing queues
+        self.__init_queues(4)
         # set the room temperature to 4 degrees higher
         initial_change = -4
         self.adjust_room(initial_change)
@@ -97,6 +112,7 @@ class Experiment:
             self.push_to_queue('wrong message! Expected to receive stop')
 
     def adjust_room(self,change):
+        print 'you are here'
         if change == 0:  # experiment done
             self.__stop()
         current_temp = self.sender.getTemp()
