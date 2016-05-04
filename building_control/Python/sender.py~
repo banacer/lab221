@@ -1,7 +1,0 @@
-from xbee import XBee
-import serial
-import sys
-
-ser = serial.Serial('/dev/ttyUSB0', 9600)
-
-xbee = XBee(ser)
