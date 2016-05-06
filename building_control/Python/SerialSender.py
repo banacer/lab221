@@ -21,6 +21,7 @@ class SerialSender(object):
         self.ser.write('d')
         self.ser.write(chr(val))
         ack = self.ser.readline().rstrip()
+
         if ack == 'A':
             pass
         else:
