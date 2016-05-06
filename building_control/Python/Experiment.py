@@ -1,5 +1,6 @@
 '''
-This module implements the 4 strategies needed for the comfort experiment
+This module implements the 4 strategies needed for the comfort experiment.
+Just call run()
 '''
 
 from multiprocessing import Process
@@ -205,11 +206,11 @@ class Experiment(object):
         else:
             print 'Strategy not recognized'
 
-
-connection = pika.BlockingConnection(pika.ConnectionParameters(host=Experiment.rabbitmq_host))
-channel = connection.channel()
-channel.queue_declare(queue='strategy')
-channel.basic_consume(Experiment.execute_strategy, queue='strategy', no_ack=True)
-print ' [*] Waiting for messages. To exit press CTRL+C'
-channel.start_consuming()
+def run():
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host=Experiment.rabbitmq_host))
+    channel = connection.channel()
+    channel.queue_declare(queue='strategy')
+    channel.basic_consume(Experiment.execute_strategy, queue='strategy', no_ack=True)
+    print ' [*] Waiting for messages. To exit press CTRL+C'
+    channel.start_consuming()
 
