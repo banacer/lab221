@@ -24,6 +24,7 @@ def sub(queue_name,callback=printit):
     """
     connection = pika.BlockingConnection(pika.ConnectionParameters(host=__mqtt_host))
     channel = connection.channel()
+    channel.queue_declare(queue=queue_name)
     channel.basic_consume(callback,queue=queue_name,no_ack=True)
     print(' [*] Waiting for messages. To exit press CTRL+C')
     channel.start_consuming()

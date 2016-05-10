@@ -3,7 +3,7 @@ This module implements the 4 strategies needed for the comfort experiment.
 Just call run()
 '''
 
-from multiprocessing import Process
+from threading import Thread, Lock
 from time import sleep
 import json
 
@@ -18,6 +18,7 @@ class Experiment(object):
     __rabbitmq_port = 1883
     __arduino_serial = '/dev/ttyACM1'
     __arduino_addr = 0x2211
+    __mutex = Lock()
     __sender = SerialSender.SerialSender(__arduino_serial)
 
     def __init__(self):
@@ -41,7 +42,7 @@ class Experiment(object):
 
     def subscribe_to_queue(self, q_name, func):
         """
-        Subsscribe to queue
+        Subscribe to queue
         :param q_name: the queue to subscribe to
         :param func: the callback function
         :return: nothing
@@ -124,10 +125,10 @@ class Experiment(object):
 
     def __monitor_loading(self, start, target):
         while start != target:
+            sleep(10)
             current = Experiment.__sender.get_temp()
             loading = float(current - start) / float(target - start) * 100
             self.push_to_queue(str(loading))
-            sleep(10)
 
     def __handle_change(self, ch, method, properties, body):
         """
@@ -161,12 +162,12 @@ class Experiment(object):
         :param change: the changed requested
         :return: nothing
         """
-
         if change == 0:  # experiment done
             self.__stop()
         current_temp = Experiment.__sender.get_temp()
         target_temp = current_temp + change
-        Process(target=Experiment.__sender.set_temp,args=(target_temp,))
+        p = Thread(target=Experiment.__sender.set_temp,args=(target_temp,current_temp))
+        p.start()
         self.__monitor_loading(current_temp, target_temp)
 
     def __stop(self):
@@ -192,8 +193,8 @@ class Experiment(object):
         """
         print 'yes we received', body
         obj = json.loads(body)
-        strategy_num = obj['num']
-        temp_preference = obj['temp']
+        strategy_num = int(obj['num'])
+        temp_preference = int(obj['temp'])
         exp = Experiment()
         if strategy_num == 1:
             exp.strategy1(temp_preference)
@@ -214,3 +215,5 @@ def run():
     print ' [*] Waiting for messages. To exit press CTRL+C'
     channel.start_consuming()
 
+if __name__ == '__main__':
+    run()
