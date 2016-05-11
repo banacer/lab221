@@ -6,6 +6,7 @@ Just call run()
 from threading import Thread, Lock
 from time import sleep
 import json
+from Pubsub import pub,sub
 
 import pika
 import SerialSender
@@ -36,6 +37,7 @@ class Experiment(object):
         :param obj: the object to send
         :return: nothing
         """
+        print 'pushing to queue ', self.topic_out,' value', str(obj)
         self.channel.basic_publish(exchange='',
                                    routing_key=self.topic_out, body=obj,
                                    properties=pika.BasicProperties(delivery_mode=2,))
@@ -167,6 +169,7 @@ class Experiment(object):
         current_temp = Experiment.__sender.get_temp()
         target_temp = current_temp + change
         p = Thread(target=Experiment.__sender.set_temp,args=(target_temp,current_temp))
+        p.daemon = True
         p.start()
         self.__monitor_loading(current_temp, target_temp)
 
@@ -206,6 +209,23 @@ class Experiment(object):
             exp.strategy4(temp_preference)
         else:
             print 'Strategy not recognized'
+
+    @staticmethod
+    def sample_data(queue_name):
+        """
+        This function get's temperature, humidity and C02
+        and push it to the queue
+        :return:
+        """
+        temperature = Experiment.__sender.get_temp()
+        humidity =  Experiment.__sender.get_humidity()
+        co2 = Experiment.__sender.get_co2()
+        data = {}
+        data['temperature']=temperature
+        data['humidity']=humidity
+        data['co2'] = co2
+        msg = json.dumps(data)
+        pub(queue_name, data)
 
 def run():
     connection = pika.BlockingConnection(pika.ConnectionParameters(host=Experiment.rabbitmq_host))
