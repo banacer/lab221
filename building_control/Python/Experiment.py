@@ -4,6 +4,7 @@ Just call run()
 '''
 
 from threading import Thread, Lock
+import time
 from time import sleep
 import json
 from Pubsub import pub,sub
@@ -211,21 +212,27 @@ class Experiment(object):
             print 'Strategy not recognized'
 
     @staticmethod
-    def sample_data(queue_name):
+    def sample_data(queue_name,sampling_time=10):
         """
         This function get's temperature, humidity and C02
         and push it to the queue
+        :param queue_name: The name of the queue to which we will publish the data
+        :sampling_time: The sampling time. Default value is 10 seconds
         :return:
         """
-        temperature = Experiment.__sender.get_temp()
-        humidity =  Experiment.__sender.get_humidity()
-        co2 = Experiment.__sender.get_co2()
-        data = {}
-        data['temperature']=temperature
-        data['humidity']=humidity
-        data['co2'] = co2
-        msg = json.dumps(data)
-        pub(queue_name, data)
+        while True:
+            temperature = Experiment.__sender.get_temp()
+            humidity =  Experiment.__sender.get_humidity()
+            co2 = Experiment.__sender.get_co2()
+            data = {}
+            data['time'] = time.time()
+            data['temperature']=temperature
+            data['humidity']=humidity
+            data['co2'] = co2
+            msg = json.dumps(data)
+            pub(queue_name, msg)
+            sleep(sampling_time)
+
 
 def run():
     connection = pika.BlockingConnection(pika.ConnectionParameters(host=Experiment.rabbitmq_host))
@@ -236,4 +243,9 @@ def run():
     channel.start_consuming()
 
 if __name__ == '__main__':
+    #first we start a thread to sample data periodically
+    p = Thread(target=Experiment.sample_data, args=('periodic_data',10))
+    p.daemon = True
+    p.start()
+    #We start the program that will wait for strategy input
     run()
