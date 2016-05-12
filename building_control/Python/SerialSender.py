@@ -3,9 +3,10 @@ A Serial communication module with Arduino to read
 temperature, humidity, CO2 and control the damper
 '''
 from time import sleep
-import serial
 from threading import Lock
 import logging
+import serial
+
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -26,7 +27,7 @@ class SerialSender(object):
         self.__mutex.acquire() #acquiring mutex
         logging.debug('mutex acquired')
 
-        self.ser.write(['d',chr(val)])
+        self.ser.write(['d', chr(val)])
         #self.ser.flushOutput()
         ack = self.ser.readline().rstrip()
         if ack == 'A':
@@ -50,7 +51,8 @@ class SerialSender(object):
         val = val.rstrip()
         try:
             val = float(val)
-        except ValueError,e:
+        except ValueError, exception:
+            logging.debug(exception)
             val = self.get_temp()
         logging.debug('temp is %s', val)
 
@@ -69,12 +71,13 @@ class SerialSender(object):
             self.ser.write('h')
             #self.ser.flushOutput()
             val = self.ser.readline().rstrip()
-        except Exception, e:
-            print e
+            val = float(val)
+        except Exception, exception:
+            logging.debug(exception)
         finally:
             self.__mutex.release()
             logging.debug('mutex released')
-            return float(val)
+            return val
 
     def get_co2(self):
         """
@@ -87,8 +90,8 @@ class SerialSender(object):
             self.ser.write('c')
             #self.ser.flushOutput()
             val = self.ser.readline().rstrip()
-        except Exception, e:
-            print e
+        except Exception, exception:
+            logging.debug(exception)
         finally:
             self.__mutex.release()
             logging.debug('mutex released')

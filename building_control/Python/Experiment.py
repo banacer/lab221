@@ -7,7 +7,7 @@ from threading import Thread, Lock
 import time
 from time import sleep
 import json
-from Pubsub import pub,sub
+from Pubsub import pub, sub
 
 import pika
 import SerialSender
@@ -38,7 +38,6 @@ class Experiment(object):
         :param obj: the object to send
         :return: nothing
         """
-        print 'pushing to queue ', self.topic_out,' value', str(obj)
         self.channel.basic_publish(exchange='',
                                    routing_key=self.topic_out, body=obj,
                                    properties=pika.BasicProperties(delivery_mode=2,))
@@ -169,7 +168,7 @@ class Experiment(object):
             self.__stop()
         current_temp = Experiment.__sender.get_temp()
         target_temp = current_temp + change
-        p = Thread(target=Experiment.__sender.set_temp,args=(target_temp,current_temp))
+        p = Thread(target=Experiment.__sender.set_temp, args=(target_temp, current_temp))
         p.daemon = True
         p.start()
         self.__monitor_loading(current_temp, target_temp)
@@ -212,7 +211,7 @@ class Experiment(object):
             print 'Strategy not recognized'
 
     @staticmethod
-    def sample_data(queue_name,sampling_time=10):
+    def sample_data(queue_name, sampling_time=10):
         """
         This function get's temperature, humidity and C02
         and push it to the queue
@@ -222,12 +221,12 @@ class Experiment(object):
         """
         while True:
             temperature = Experiment.__sender.get_temp()
-            humidity =  Experiment.__sender.get_humidity()
+            humidity = Experiment.__sender.get_humidity()
             co2 = Experiment.__sender.get_co2()
             data = {}
             data['time'] = time.time()
-            data['temperature']=temperature
-            data['humidity']=humidity
+            data['temperature'] = temperature
+            data['humidity'] = humidity
             data['co2'] = co2
             msg = json.dumps(data)
             pub(queue_name, msg)
@@ -235,6 +234,10 @@ class Experiment(object):
 
 
 def run():
+    """
+    This function is the starting point of this module
+    :return: No return
+    """
     connection = pika.BlockingConnection(pika.ConnectionParameters(host=Experiment.rabbitmq_host))
     channel = connection.channel()
     channel.queue_declare(queue='strategy')
@@ -244,8 +247,8 @@ def run():
 
 if __name__ == '__main__':
     #first we start a thread to sample data periodically
-    p = Thread(target=Experiment.sample_data, args=('periodic_data',10))
-    p.daemon = True
-    p.start()
+    thread = Thread(target=Experiment.sample_data, args=('periodic_data', 10))
+    thread.daemon = True
+    thread.start()
     #We start the program that will wait for strategy input
     run()
