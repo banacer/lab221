@@ -7,9 +7,6 @@ from threading import Lock
 import logging
 import serial
 
-
-logging.getLogger().setLevel(logging.INFO)
-
 class SerialSender(object):
     '''
     Class to get temperature, humidity, CO2 and control

@@ -1,4 +1,5 @@
 import pika
+import logging
 import sys
 
 __mqtt_host = '172.26.50.120'
@@ -26,7 +27,7 @@ def sub(queue_name,callback=printit):
     channel = connection.channel()
     channel.queue_declare(queue=queue_name)
     channel.basic_consume(callback,queue=queue_name,no_ack=True)
-    print(' [*] Waiting for messages. To exit press CTRL+C')
+    logging.info(' [*] Waiting for messages. To exit press CTRL+C')
     channel.start_consuming()
 
 def pub(queue_name,message):
@@ -39,5 +40,5 @@ def pub(queue_name,message):
     channel = connection.channel()
     channel.queue_declare(queue=queue_name)
     channel.basic_publish(exchange='',routing_key=queue_name,body=message)
-    print" [x] Sent %s" % message
+    logging.info(" [x] Sent %s" % message)
     connection.close()

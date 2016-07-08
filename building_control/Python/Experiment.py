@@ -7,6 +7,7 @@ from threading import Thread, Lock
 import time
 from time import sleep
 import json
+import logging
 from Pubsub import pub, sub
 
 import pika
@@ -82,7 +83,7 @@ class Experiment(object):
         executes strategy 2
         :param temp_preference: the temperature preference
         """
-        print 'strategy 2 running!'
+        logging.debug('strategy 2 running!')
 
         #initializing queues
         self.__init_queues(2)
@@ -126,6 +127,7 @@ class Experiment(object):
         self.subscribe_to_queue(self.topic_in, self.wait_for_stop)
 
     def __monitor_loading(self, start, target):
+        logging.debug('monitor loading')
         while start != target:
             sleep(10)
             current = Experiment.__sender.get_temp()
@@ -194,7 +196,7 @@ class Experiment(object):
             with num (strategy number) key and temp key and their respective values
         :return:
         """
-        print 'yes we received', body
+        logging.info('yes we received', body)
         obj = json.loads(body)
         strategy_num = int(obj['num'])
         temp_preference = int(obj['temp'])
@@ -208,7 +210,7 @@ class Experiment(object):
         elif strategy_num == 4:
             exp.strategy4(temp_preference)
         else:
-            print 'Strategy not recognized'
+            logging.error('Strategy not recognized')
 
     @staticmethod
     def sample_data(queue_name, sampling_time=10):
@@ -222,7 +224,7 @@ class Experiment(object):
         while True:
             temperature = Experiment.__sender.get_temp()
             humidity = Experiment.__sender.get_humidity()
-            co2 = Experiment.__sender.get_co2()
+            co2 = 0 #Experiment.__sender.get_co2() will change this later!!!!
             data = {}
             data['time'] = time.time()
             data['temperature'] = temperature
@@ -242,10 +244,11 @@ def run():
     channel = connection.channel()
     channel.queue_declare(queue='strategy')
     channel.basic_consume(Experiment.execute_strategy, queue='strategy', no_ack=True)
-    print ' [*] Waiting for messages. To exit press CTRL+C'
+    print ' [*] Experiment started waiting for experiment number + temperature preference'
     channel.start_consuming()
 
 if __name__ == '__main__':
+    logging.getLogger().setLevel(logging.WARNING)
     #first we start a thread to sample data periodically
     thread = Thread(target=Experiment.sample_data, args=('periodic_data', 10))
     thread.daemon = True
